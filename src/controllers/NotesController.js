@@ -1,10 +1,9 @@
 const knex = require("../database/knex");
-const { request, response } = require("../routes");
 
 class NotesController {
   async create(request, response){
     const { title, description, tags, links } = request.body;
-    const { user_id } = request.params;
+    const user_id = request.user.id;
 
     const note_id = await knex("notes").insert({
       title,
@@ -13,7 +12,7 @@ class NotesController {
     });
 
     const linksInsert = links.map( link => {
-      return{
+      return {
         note_id,
         url: link
       }
@@ -22,7 +21,7 @@ class NotesController {
     await knex("links").insert(linksInsert);
 
     const tagsInsert = tags.map( name => {
-      return{
+      return {
         note_id,
         name,
         user_id
@@ -31,7 +30,7 @@ class NotesController {
 
     await knex("tags").insert(tagsInsert);
 
-    response.json();
+    return response.json();
   }
 
   async show(request, response) {
@@ -57,8 +56,9 @@ class NotesController {
   }
 
   async index(request, response) {
-    const { title, user_id, tags } = request.query;
-    
+    const { title, tags } = request.query;
+    const user_id = request.user.id;
+
     let notes;
 
     if(tags) {
@@ -100,4 +100,4 @@ class NotesController {
     }
 };
 
-module.exports = NotesController
+module.exports = NotesController;
